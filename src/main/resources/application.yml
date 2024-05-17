@@ -1,0 +1,108 @@
+spring:
+  profiles:
+    active: blue_server
+    group:
+      local_server: local, common, secret
+      blue_server: blue, common, secret
+      green_server: green, common, secret
+
+server:
+  env: blue
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            redirectUri: http://localhost:8080/login/oauth2/code/naver
+          kakao:
+            redirectUri: http://localhost:8080/login/oauth2/code/kakao
+server:
+  port: 8080
+  deploy-address: localhost
+  name: local_server
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: blue
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            redirectUri: http://3.39.39.112/login/oauth2/code/naver
+          kakao:
+            redirectUri: http://3.39.39.112/login/oauth2/code/kakao
+server:
+  port: 8080
+  deploy-address: 3.39.39.112
+  name: blue_server
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: green
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            redirectUri: http://3.39.39.112/login/oauth2/code/naver
+          kakao:
+            redirectUri: http://3.39.39.112/login/oauth2/code/kakao
+server:
+  port: 9090
+  deploy-address: 3.39.39.112
+  name: green_server
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: common
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            scope:
+              - email
+              - profile
+          naver:
+            clientName: Naver
+            authorizationGrantType: authorization_code
+            clientAuthenticationMethod: POST
+          kakao:
+            clientName: Kakao
+            authorizationGrantType: authorization_code
+            clientAuthenticationMethod: POST
+        provider:
+          naver:
+            authorizationUri: https://nid.naver.com/oauth2.0/authorize
+            tokenUri: https://nid.naver.com/oauth2.0/token
+            userInfoUri: https://openapi.naver.com/v1/nid/me
+            userNameAttribute: response
+          kakao:
+            authorizationUri: https://kauth.kakao.com/oauth/authorize
+            tokenUri: https://kauth.kakao.com/oauth/token
+            userInfoUri: https://kapi.kakao.com/v2/user/me
+            userNameAttribute: id
+
+client:
+  deploy-address: "localhost:3000"
+
+mybatis:
+  mapper-locations:
+    - /mappers/*.xml

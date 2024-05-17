@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.pet.repository.CommunityBoardFavoriteMapper">
+
+    <resultMap id="CommunityBoardFavoriteResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardFavorite">
+        <id property="communityBoardFavoriteId" column="community_board_favorite_id" />
+        <result property="communityBoardId" column="community_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="user_username" />
+        <result property="password" column="user_password" />
+        <result property="name" column="user_name" />
+        <result property="address" column="user_address" />
+        <result property="telNumber" column="user_tel_number" />
+        <result property="nickname" column="user_nickname" />
+        <result property="email" column="user_email" />
+        <result property="profileImageUrl" column="user_profile_image_url" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="CommunityBoardAnimalCategoryResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardAnimalCategory" >
+        <id property="communityBoardAnimalCategoryId" column="community_board_id" />
+        <result property="communityBoardAnimalCategoryName" column="community_board_animal_category_name"/>
+        <result property="communityBoardAnimalCategoryNameKor" column="community_board_animal_category_name_kor"/>
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+
+    <resultMap id="CommunityBoardResultMap" type="com.project.pet.entity.communityBoard.CommunityBoard" >
+        <id property="communityBoardId" column="community_board_id"/>
+        <result property="userId" column="user_id" />
+        <result property="communityBoardTitle" column="community_board_title" />
+        <result property="communityBoardContent" column="community_board_content" />
+        <result property="communityBoardAnimalCategoryId" column="community_board_animal_category_id" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <result property="favoriteCount" column="favorite_count"/>
+        <association property="communityBoardFavorite" resultMap="CommunityBoardFavoriteResultMap" />
+        <association property="user" resultMap="UserResultMap" />
+    </resultMap>
+
+
+    <insert id="saveBoardFavorite"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoardFavorite"
+    >
+        insert into
+            community_board_favorite_tb
+        values
+            (0, #{communityBoardId}, #{userId}, now(), now())
+    </insert>
+
+    <select id="existsByUserIdAndBoardId"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoardFavorite"
+            resultType="boolean">
+        select exists (
+        select 1
+            from community_board_favorite_tb
+        where
+            user_id = #{userId}
+            and community_board_id = #{communityBoardId}
+        )
+
+    </select>
+
+    <select id="getBoardFavoritesCount"
+            parameterType="integer"
+            resultMap="CommunityBoardResultMap"
+    >
+        select
+            *,
+            (select count(*) from community_board_favorite_tb where community_board_id = cbt.community_board_id group by community_board_id) as favorite_count
+        from
+            community_board_tb cbt
+            left outer join community_board_favorite_tb cbft on (cbft.community_board_id =  cbt.community_board_id)
+        where
+            cbt.community_board_id = #{getCommunityBoardId}
+    </select>
+
+    <delete id="deleteCommunityBoardFavorite"
+                parameterType="integer">
+        delete
+        from
+            community_board_favorite_tb
+        where
+            user_id = #{userId}
+            and community_board_id = #{communityBoardId}
+    </delete>
+</mapper>
+
+

@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.pet.repository.AdoptationBoardMapper">
+
+    <resultMap id="AdoptationBoardAnimalCategoryResultMap" type="com.project.pet.entity.adoptationBoard.AdoptationBoardAnimalCategory">
+       <id property="boardAnimalCategoryName" column="board_animal_category_id"/>
+        <result property="boardAnimalCategoryName" column="board_animal_category_name"/>
+        <result property="boardAnimalCategoryNameKor" column="board_animal_category_name_kor"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="user_username"/>
+        <result property="password" column="user_password"/>
+        <result property="name" column="user_name"/>
+        <result property="address" column="user_address"/>
+        <result property="telNumber" column="user_tel_number"/>
+        <result property="nickname" column="user_nickname"/>
+        <result property="email" column="user_email"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <resultMap id="AdoptationBoardResultMap" type="com.project.pet.entity.adoptationBoard.AdoptationBoard">
+        <id property="adoptationBoardId" column="adoptation_board_id"/>
+        <result property="adoptationBoardTitle" column="adoptation_board_title"/>
+        <result property="adoptationBoardContent" column="adoptation_board_content"/>
+        <result property="boardAnimalCategoryId" column="board_animal_category_id"/>
+        <result property="favoriteCount" column="favorite_count"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="totalSum" column="total_sum"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <association property="adoptationBoardAnimalCategory" resultMap="AdoptationBoardAnimalCategoryResultMap"/>
+        <association property="user" resultMap="UserResultMap"/>
+        <association property="adoptationBoardFavorite" resultMap="AdoptationBoardFavoriteResultMap"/>
+        <association property="adoptationBoardComment" resultMap="AdoptationBoardCommentResultMap"/>
+    </resultMap>
+
+    <resultMap id="AdoptationBoardFavoriteResultMap" type="com.project.pet.entity.adoptationBoard.AdoptationBoardFavorite">
+        <id property="adoptationFavoriteId" column="adoptation_favorite_id"/>
+        <result property="adoptationBoardId" column="adoptation_board_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+    <resultMap id="AdoptationBoardCommentResultMap" type="com.project.pet.entity.adoptationBoard.AdoptationBoardComment">
+        <id property="adoptationBoardCommentId" column="adoptation_board_comment_id" />
+        <result property="adoptationBoardId" column="adoptation_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="adoptationBoardCommentContent" column="adoptation_board_comment_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="user" resultMap="UserResultMap"/>
+    </resultMap>
+
+    <insert id="postAdoptationBoard" parameterType="com.project.pet.entity.adoptationBoard.AdoptationBoard">
+        insert into
+            adoptation_board_tb
+        values(0,#{userId},#{adoptationBoardTitle},#{adoptationBoardContent},#{boardAnimalCategoryId}, 0, now(), now())
+    </insert>
+
+    <select id="getTop3AdoptationBoards" resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            abt.create_date,
+            abt.update_date,
+            (select count(*) from adoptation_board_favorite_tb where adoptation_board_id = abt.adoptation_board_id group by adoptation_board_id) as favorite_count,
+            abt.view_count,
+            (select count(*) from adoptation_board_comment_tb where adoptation_board_id = abt.adoptation_board_id group by adoptation_board_id) as comment_count,
+            (select count(*) from adoptation_board_favorite_tb where adoptation_board_id = abt.adoptation_board_id) + abt.view_count + (select count(*) from adoptation_board_comment_tb where adoptation_board_id = abt.adoptation_board_id) as total_sum
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+            left outer join adoptation_board_favorite_tb abft on(abft.adoptation_board_id = abt.adoptation_board_id)
+            left outer join adoptation_board_comment_tb abct on (abct.adoptation_board_id = abt.adoptation_board_id)
+        group by
+            abt.adoptation_board_id
+        order by total_sum desc
+        limit 3
+    </select>
+
+    <select id="getAdoptationBoards"
+            resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            (select count(*) from adoptation_board_favorite_tb where adoptation_board_id = abt.adoptation_board_id group by adoptation_board_id) as favorite_count,
+            abt.view_count,
+            (select count(*) from adoptation_board_comment_tb where adoptation_board_id = abt.adoptation_board_id group by adoptation_board_id) as comment_count,
+            abt.create_date,
+            abt.update_date
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            1 = 1
+            <if test="boardAnimalCategoryId != 0">
+                and abt.board_animal_category_id = #{boardAnimalCategoryId}
+            </if>
+            <if test="adoptationBoardTitle != '' and adoptationBoardTitle != null">
+                and abt.adoptation_board_title like concat('%', #{adoptationBoardTitle}, '%')
+            </if>
+        group by
+            abt.adoptation_board_id
+        limit #{startIndex}, #{count}
+    </select>
+
+    <select id="getAdoptationBoardByUserId"
+            parameterType="integer"
+            resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            abt.create_date,
+            abt.update_date
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abt.user_id = #{userId}
+    </select>
+
+    <select id="getAdoptationBoardCount"
+            resultType="integer">
+        select
+            count(*)
+        from
+            adoptation_board_tb abt
+        where
+            1 = 1
+            <if test="boardAnimalCategoryId != 0">
+                and abt.board_animal_category_id = #{boardAnimalCategoryId}
+            </if>
+            <if test="adoptationBoardTitle != '' and adoptationBoardTitle != null">
+                and abt.adoptation_board_title like concat('%', #{adoptationBoardTitle}, '%')
+            </if>
+    </select>
+
+    <select id="getAdoptationBoardUserCount"
+            resultType="integer">
+        select
+            count(*)
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abt.user_id = #{userId}
+    </select>
+
+    <select id="getAdoptationBoardDogCount"
+            resultType="integer">
+        select
+            count(*)
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abt.board_animal_category_id = 1;
+    </select>
+
+    <select id="getAdoptationBoardCatCount"
+            resultType="integer">
+        select
+            count(*)
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abt.board_animal_category_id = 2;
+    </select>
+
+    <select id="getAdoptationBoardsDog"
+            resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            count(abft.adoptation_favorite_id),
+            abt.create_date,
+            abt.update_date
+            from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+            left outer join adoptation_board_favorite_tb abft on(abft.adoptation_board_id = abt.adoptation_board_id)
+        where
+            abt.board_animal_category_id = 1
+        group by
+            adoptation_board_id;
+    </select>
+
+    <select id="getAdoptationBoardsCat"
+            resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            count(abft.adoptation_favorite_id),
+            abt.create_date,
+            abt.update_date
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+            left outer join adoptation_board_favorite_tb abft on(abft.adoptation_board_id = abt.adoptation_board_id)
+        where
+            abt.board_animal_category_id = 2
+        group by
+            abt.adoptation_board_id;
+
+    </select>
+
+    <update id="setAdoptationBoardViewCountUp" parameterType="integer">
+        update adoptation_board_tb
+        set
+            view_count = view_count + 1
+        where
+            adoptation_board_id = #{boardId}
+
+    </update>
+
+    <select id="getAdoptationBoardByBoardId"
+            parameterType="integer"
+            resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            (select count(*) from adoptation_board_favorite_tb where adoptation_board_id = abt.adoptation_board_id group by adoptation_board_id) as favorite_count,
+            abt.view_count,
+            (select count(*) from adoptation_board_comment_tb where adoptation_board_id = abt.adoptation_board_id group by adoptation_board_id) as comment_count,
+            abt.create_date,
+            abt.update_date
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abt.adoptation_board_id = #{boardId}
+    </select>
+
+    <delete id="deleteAdoptationBoardByBoardId"
+            parameterType="integer">
+        delete
+        from
+            adoptation_board_tb
+        where
+            adoptation_board_id = #{boardId}
+    </delete>
+
+    <select id="getLikedAdoptationBoardByUserId"
+            parameterType="integer"
+            resultMap="AdoptationBoardResultMap">
+        select
+            abt.adoptation_board_id,
+            abft.user_id,
+            ut.user_username,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            abt.create_date,
+            abt.update_date
+        from
+            adoptation_board_tb abt
+            inner join adoptation_board_favorite_tb abft on (abft.adoptation_board_id = abt.adoptation_board_id)
+            left outer join user_tb ut on (ut.user_id = abft.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abft.user_id = #{userId};
+    </select>
+
+    <update id="updateAdoptationBoard"
+            parameterType="com.project.pet.entity.adoptationBoard.AdoptationBoard">
+        update
+            adoptation_board_tb
+        set
+            adoptation_board_title = #{adoptationBoardTitle},
+            adoptation_board_content = #{adoptationBoardContent},
+            board_animal_category_id = #{boardAnimalCategoryId},
+            update_date = now()
+
+        where
+            adoptation_board_id = #{adoptationBoardId}
+    </update>
+
+    <select id="getAdoptationBoardMyPage">
+        select
+            abt.adoptation_board_id,
+            abt.user_id,
+            ut.user_username,
+            abt.adoptation_board_title,
+            abt.adoptation_board_content,
+            abt.board_animal_category_id,
+            abact.board_animal_category_name_kor,
+            abt.create_date,
+            abt.update_date
+        from
+            adoptation_board_tb abt
+            left outer join user_tb ut on (ut.user_id = abt.user_id)
+            left outer join adoptation_board_animal_category_tb abact on (abact.board_animal_category_id = abt.board_animal_category_id)
+        where
+            abt.user_id = #{userId}
+        limit #{startIndex}, #{count}
+    </select>
+
+</mapper>

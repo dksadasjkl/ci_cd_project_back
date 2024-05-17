@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.AdoptationBoardCommentMapper">
+    <resultMap id="AdoptationBoardCommentResultMap" type="com.project.pet.entity.adoptationBoard.AdoptationBoardComment">
+        <id property="adoptationBoardCommentId" column="adoptation_board_comment_id" />
+        <result property="adoptationBoardId" column="adoptation_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="adoptationBoardCommentContent" column="adoptation_board_comment_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="user" resultMap="UserResultMap"/>
+    </resultMap>
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="user_username"/>
+        <result property="password" column="user_password"/>
+        <result property="name" column="user_name"/>
+        <result property="address" column="user_address"/>
+        <result property="telNumber" column="user_tel_number"/>
+        <result property="nickname" column="user_nickname"/>
+        <result property="email" column="user_email"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+    <insert id="saveAdoptationBoardComment" parameterType="com.project.pet.entity.adoptationBoard.AdoptationBoardComment">
+        insert into
+            adoptation_board_comment_tb
+        values
+            (0, #{adoptationBoardId}, #{userId}, #{adoptationBoardCommentContent}, now(), now())
+    </insert>
+    <select id="getAdoptationBoardCommentByBoardId" parameterType="integer"
+            resultMap="AdoptationBoardCommentResultMap">
+        select
+            abct.adoptation_board_id,
+            abct.adoptation_board_comment_id,
+            ut.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            abct.adoptation_board_comment_content,
+            abct.create_date,
+            abct.update_date
+        from
+            adoptation_board_comment_tb abct
+        left outer join
+            user_tb ut on (ut.user_id = abct.user_id)
+        where
+            adoptation_board_id = #{boardId};
+    </select>
+    <select id="getAdoptationBoardCommentByCommentId" parameterType="integer"
+            resultMap="AdoptationBoardCommentResultMap">
+        select
+            abct.adoptation_board_id,
+            ut.user_username,
+            abct.adoptation_board_comment_content,
+            abct.create_date,
+            abct.update_date
+        from
+            adoptation_board_comment_tb abct
+            left outer join
+            user_tb ut on (ut.user_id = abct.user_id)
+        where
+            adoptation_board_comment_id = #{commentId};
+    </select>
+    <delete id="deleteAdoptationBoardByCommentId"
+    parameterType="integer">
+        delete from
+            adoptation_board_comment_tb
+        where
+            adoptation_board_comment_id = #{commentId}
+
+    </delete>
+
+    <update id="updateAdoptationBoardByCommentId"
+            parameterType="com.project.pet.entity.adoptationBoard.AdoptationBoardComment">
+        update
+            adoptation_board_comment_tb
+        set
+            adoptation_board_comment_content = #{adoptationBoardCommentContent},
+            update_date = now()
+        where
+            adoptation_board_comment_id = #{adoptationBoardCommentId}
+    </update>
+</mapper>

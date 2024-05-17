@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.ProductOrderDetailMapper">
+
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="user_username" />
+        <result property="password" column="user_password" />
+        <result property="name" column="user_name" />
+        <result property="address" column="user_address" />
+        <result property="telNumber" column="user_tel_number" />
+        <result property="nickname" column="user_nickname" />
+        <result property="email" column="user_email" />
+        <result property="profileImageUrl" column="user_profile_image_url" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductSizeCategoryResultMap" type="com.project.pet.entity.product.ProductSizeCategory">
+        <id property="productSizeCategoryId" column="product_size_category_tb" />
+        <result property="productSizeCategoryName" column="product_size_category_name" />
+        <result property="productSizeCategoryNameKor" column="product_size_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.project.pet.entity.product.Product">
+        <id property="productId" column="product_id" />
+        <result property="userId" column="user_id" />
+        <result property="productNameKor" column="product_name_kor" />
+        <result property="productPrice" column="product_price" />
+        <result property="productImageUrl" column="product_image_url" />
+        <result property="productCategoryId" column="product_category_id" />
+        <result property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productBoardContent" column="product_board_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductAnimalCategoryResultMap" type="com.project.pet.entity.product.ProductAnimalCategory">
+        <id property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productAnimalCategoryName" column="product_animal_category_name" />
+        <result property="productAnimalCategoryNameKor" column="product_animal_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductCategoryResultMap" type="com.project.pet.entity.product.ProductCategory">
+        <id property="productCategoryId" column="product_category_id" />
+        <result property="productCategoryName" column="product_category_name" />
+        <result property="productCategoryNameKor" column="product_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductOrderResultMap" type="com.project.pet.entity.product.ProductOrder">
+        <id property="productOrderId" column="product_order_id" />
+        <result property="userId" column="user_id" />
+        <result property="productId" column="product_id" />
+        <result property="productOrderAddress" column="product_order_address" />
+        <result property="productOrderDetailAddress" column="product_order_detail_address" />
+        <result property="productSizeCategoryId" column="product_size_category_id" />
+        <result property="productOrderCount" column="product_order_count" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="product" resultMap="ProductResultMap" />
+        <association property="user" resultMap="UserResultMap" />
+        <association property="productSizeCategory" resultMap="ProductSizeCategoryResultMap" />
+    </resultMap>
+    
+
+    <insert id="postProductOrderDetail" parameterType="com.project.pet.entity.product.ProductOrderDetail">
+        insert into
+            product_order_detail_tb
+        values(0, #{productOrderId}, #{productId}, now(), now())
+    </insert>
+
+    <update id="deleteProductOrder" parameterType="Integer">
+        delete
+        from
+            product_order_detail_tb
+        where
+            product_order_id = #{productOrderId}
+    </update>
+
+    <delete id="deleteProductOrders" parameterType="Integer">
+        delete
+        from
+            product_order_detail_tb
+        where
+            product_order_id in (
+                <foreach collection="productOrderIds" item="productOrderId" separator=",">
+                    #{productOrderId}
+                </foreach>
+            )
+    </delete>
+
+</mapper>

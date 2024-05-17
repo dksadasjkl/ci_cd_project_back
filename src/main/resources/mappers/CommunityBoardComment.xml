@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.pet.repository.CommunityBoardCommentMapper">
+
+    <resultMap id="CommunityBoardCommentResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardComment">
+        <id property="communityBoardCommentId" column="community_board_comment_id" />
+        <result property="communityBoardId" column="community_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="communityBoardCommentContent" column="community_board_comment_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="communityBoard" resultMap="CommunityBoardResultMap"/>
+        <association property="user" resultMap="UserResultMap"/>
+    </resultMap>
+
+    <resultMap id="CommunityBoardResultMap" type="com.project.pet.entity.communityBoard.CommunityBoard" >
+    <id property="communityBoardId" column="community_board_id"/>
+    <result property="userId" column="user_id" />
+    <result property="communityBoardTitle" column="community_board_title" />
+    <result property="communityBoardContent" column="community_board_content" />
+    <result property="communityBoardAnimalCategoryId" column="community_board_animal_category_id" />
+    <result property="createDate" column="create_date" />
+    <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="user_username" />
+        <result property="password" column="user_password" />
+        <result property="name" column="user_name" />
+        <result property="address" column="user_address" />
+        <result property="telNumber" column="user_tel_number" />
+        <result property="nickname" column="user_nickname" />
+        <result property="email" column="user_email" />
+        <result property="profileImageUrl" column="user_profile_image_url" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <insert id="saveCommunityBoardComment"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoardComment"
+            useGeneratedKeys="true"
+            keyProperty="communityBoardCommentId"
+    >
+        insert into
+            community_board_comment_tb
+        values
+            (0, #{communityBoardId}, #{userId}, #{communityBoardCommentContent}, now(), now());
+
+    </insert>
+
+    <select id="getCommunityBoardAllCommentsByBoardId"
+            parameterType="integer"
+            resultMap="CommunityBoardCommentResultMap"
+    >
+        select
+            cbct.community_board_comment_id,
+            cbct.community_board_id,
+            cbct.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            cbct.community_board_comment_content,
+            cbct.create_date,
+            cbct.update_date
+        from
+            community_board_comment_tb cbct
+            left outer join community_board_tb cbt on (cbt.community_board_id = cbct.community_board_id)
+            left outer join user_tb ut on (ut.user_id = cbct.user_id)
+        where
+            cbct.community_board_id = #{communityBoardId};
+
+    </select>
+
+    <select id="getCommunityBoardCommentByUserId"
+            parameterType="integer"
+            resultMap="CommunityBoardCommentResultMap"
+    >
+        select
+            cbct.community_board_comment_id,
+            cbct.community_board_id,
+            cbct.user_id,
+            ut.user_username,
+            cbct.community_board_comment_content,
+            cbct.create_date,
+            cbct.update_date
+        from
+            community_board_comment_tb cbct
+        left outer join
+            community_board_tb cbt on (cbt.community_board_id = cbct.community_board_id)
+        where
+        cbct.user_id = #{userId};
+    </select>
+
+    <delete id="deleteCommunityBoardComment"
+                parameterType="integer">
+        delete
+        from
+            community_board_comment_tb
+        where
+            community_board_comment_id = #{communityBoardCommentId};
+    </delete>
+
+    <delete id="deleteCommunityBoardComments"
+                parameterType="list">
+        delete
+        from
+            community_board_comment_tb
+
+        where
+            community_board_comment_id in (
+                <foreach collection="commentIds" item="commentId" separator=",">
+                    #{commentId}
+                </foreach>
+            )
+    </delete>
+
+    <update id="updateCommunityBoardComment"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoardComment"
+    >
+        update
+            community_board_comment_tb
+        set
+            community_board_comment_content = #{communityBoardCommentContent},
+            update_date = now()
+        where
+            community_board_comment_id =#{communityBoardCommentId}
+    </update>
+
+</mapper>

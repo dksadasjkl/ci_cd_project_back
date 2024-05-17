@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.admin.ProductOrderAdminMapper">
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="user_username" />
+        <result property="password" column="user_password" />
+        <result property="name" column="user_name" />
+        <result property="address" column="user_address" />
+        <result property="telNumber" column="user_tel_number" />
+        <result property="nickname" column="user_nickname" />
+        <result property="email" column="user_email" />
+        <result property="profileImageUrl" column="user_profile_image_url" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductSizeCategoryResultMap" type="com.project.pet.entity.product.ProductSizeCategory">
+        <id property="productSizeCategoryId" column="product_size_category_tb" />
+        <result property="productSizeCategoryName" column="product_size_category_name" />
+        <result property="productSizeCategoryNameKor" column="product_size_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.project.pet.entity.product.Product">
+        <id property="productId" column="product_id" />
+        <result property="userId" column="user_id" />
+        <result property="productNameKor" column="product_name_kor" />
+        <result property="productPrice" column="product_price" />
+        <result property="productImageUrl" column="product_image_url" />
+        <result property="productCategoryId" column="product_category_id" />
+        <result property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productBoardContent" column="product_board_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductOrderResultMap" type="com.project.pet.entity.product.ProductOrder">
+        <id property="productOrderId" column="product_order_id" />
+        <result property="userId" column="user_id" />
+        <result property="productId" column="product_id" />
+        <result property="productOrderAddress" column="product_order_address" />
+        <result property="productOrderDetailAddress" column="product_order_detail_address" />
+        <result property="productSizeCategoryId" column="product_size_category_id" />
+        <result property="productOrderCount" column="product_order_count" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="product" resultMap="ProductResultMap" />
+        <association property="user" resultMap="UserResultMap" />
+        <association property="productSizeCategory" resultMap="ProductSizeCategoryResultMap" />
+    </resultMap>
+
+    <select id="getProductOrderDetailsAdmin" resultMap="ProductOrderResultMap">
+        select
+        pot.product_order_id,
+        pt.product_name_kor,
+        pot.product_size_category_id,
+        psct.product_size_category_name,
+        pot.product_order_count,
+        ut.user_name,
+        pot.product_order_address,
+        pot.product_order_detail_address
+        from product_order_tb pot
+        left outer join product_tb pt on (pt.product_id = pot.product_id)
+        left outer join product_size_category_tb psct on (psct.product_size_category_id = pot.product_size_category_id)
+        left outer join user_tb ut on (ut.user_id = pot.user_id)
+        where
+        1 = 1
+        <if test="productSizeCategoryId != 0">
+            and pot.product_size_category_id = #{productSizeCategoryId}
+        </if>
+        <if test="productNameKor != '' and productNameKor != null">
+            and pt.product_name_kor like concat('%', #{productNameKor}, '%')
+        </if>
+        limit #{startIndex}, #{count}
+    </select>
+
+    <select id="getProductOrderDetailsAdminCount" resultType="Integer">
+        select
+        count(*)
+        from product_order_tb pot
+        left outer join product_tb pt on (pt.product_id = pot.product_id)
+        left outer join product_size_category_tb psct on (psct.product_size_category_id = pot.product_size_category_id)
+        left outer join user_tb ut on (ut.user_id = pot.user_id)
+        where
+        1 = 1
+        <if test="productSizeCategoryId != 0">
+            and pot.product_size_category_id = #{productSizeCategoryId}
+        </if>
+        <if test="productNameKor != '' and productNameKor != null">
+            and pt.product_name_kor like concat('%', #{productNameKor}, '%')
+        </if>
+    </select>
+
+    <select id="getDogSales" resultType="Integer">
+        select
+            coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pact.product_animal_category_id = 1
+    </select>
+    <select id="getCatSales" resultType="Integer">
+        select
+        coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pact.product_animal_category_id = 2
+    </select>
+    <select id="getFeedSales" resultType="Integer">
+        select
+            coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pct.product_category_id = 1
+    </select>
+    <select id="getSnackSales" resultType="Integer">
+        select
+            coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pct.product_category_id = 2
+    </select>
+    <select id="getHygieneSales" resultType="Integer">
+        select
+            coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pct.product_category_id = 3
+    </select>
+    <select id="getBeautySales" resultType="Integer">
+        select
+            coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pct.product_category_id = 4
+    </select>
+
+    <select id="getTotalSales" resultType="Integer">
+        select
+            coalesce(sum(pt.product_price * pot.product_order_count), 0)
+        from
+            product_order_tb pot
+            left outer join product_tb pt on(pt.product_id = pot.product_id)
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_category_id)
+            left outer join product_animal_category_tb pact on (pact.product_animal_category_id = pt.product_animal_category_id)
+    </select>
+</mapper>

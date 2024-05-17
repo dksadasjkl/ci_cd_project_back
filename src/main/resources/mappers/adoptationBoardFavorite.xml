@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.pet.repository.AdoptationBoardFavoriteMapper">
+    <resultMap id="AdoptationBoardFavoriteResultMap"
+               type="com.project.pet.entity.adoptationBoard.AdoptationBoardFavorite">
+        <id property="adoptationFavoriteId" column="adoptation_favorite_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="adoptationBoardId" column="adoptation_board_id"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <insert id="saveAdoptationBoardFavorite"
+        parameterType="com.project.pet.entity.adoptationBoard.AdoptationBoardFavorite">
+        insert into
+            adoptation_board_favorite_tb
+        values
+        (0, #{adoptationBoardId}, #{userId}, now(), now())
+    </insert>
+    <delete id="deleteAdoptationBoardFavorite"
+            parameterType="map">
+        delete
+        from
+            adoptation_board_favorite_tb
+        where
+        user_id = #{userId}
+        and adoptation_board_id = #{adoptationBoardId};
+    </delete>
+
+    <select id="getAdoptationBoardFavorite"
+            resultType="integer"
+        >
+        select
+            count(*)
+        from
+            adoptation_board_favorite_tb
+        where
+            adoptation_board_id = #{boardId}
+    </select>
+
+    <select id="findMyUserIdByBoardId"
+            resultMap="AdoptationBoardFavoriteResultMap"
+            >
+        SELECT
+            user_id
+        FROM
+            pet_db.adoptation_board_favorite_tb
+        where
+            adoptation_board_id = #{boardId}
+    </select>
+
+</mapper>

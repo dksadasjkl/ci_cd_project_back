@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.ProductMapper">
+
+    <resultMap id="ProductResultMap" type="com.project.pet.entity.product.Product">
+        <id property="productId" column="product_id" />
+        <result property="userId" column="user_id" />
+        <result property="productNameKor" column="product_name_kor" />
+        <result property="productPrice" column="product_price" />
+        <result property="productImageUrl" column="product_image_url" />
+        <result property="productCategoryId" column="product_category_id" />
+        <result property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productBoardContent" column="product_board_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="productCategory" resultMap="ProductCategoryResultMap"/>
+        <association property="productAnimalCategory" resultMap="ProductAnimalCategoryResultMap"/>
+    </resultMap>
+
+    <resultMap id="ProductCategoryResultMap" type="com.project.pet.entity.product.ProductCategory">
+        <id property="productCategoryId" column="product_category_id" />
+        <result property="productCategoryName" column="product_category_name" />
+        <result property="productCategoryNameKor" column="product_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductAnimalCategoryResultMap" type="com.project.pet.entity.product.ProductAnimalCategory">
+        <id property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productAnimalCategoryName" column="product_animal_category_name" />
+        <result property="productAnimalCategoryNameKor" column="product_animal_category_name_kor" />
+    </resultMap>
+
+    <select id="getProduct" resultMap="ProductResultMap">
+        select
+            pt.product_id,
+            pt.product_name_kor,
+            pt.product_price,
+            pt.product_image_url,
+            pt.product_category_id,
+            pct.product_category_name_kor,
+            pt.product_animal_category_id,
+            pact.product_animal_category_name_kor,
+            pt.product_board_content
+        from
+            product_tb pt
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_animal_category_id)
+            left outer join product_animal_category_tb pact on(pact.product_animal_category_id = pt.product_animal_category_id)
+        where
+            pt.product_id = #{productId}
+    </select>
+
+    <select id="getProducts" resultMap="ProductResultMap">
+        select
+            pt.product_id,
+            pt.product_name_kor,
+            pt.product_price,
+            pt.product_image_url,
+            pt.product_category_id,
+            pct.product_category_name_kor,
+            pt.product_animal_category_id,
+            pact.product_animal_category_name_kor,
+            pt.product_board_content
+        from
+            product_tb pt
+            left outer join product_category_tb pct on(pct.product_category_id = pt.product_animal_category_id)
+            left outer join product_animal_category_tb pact on(pact.product_animal_category_id = pt.product_animal_category_id)
+    </select>
+
+    <select id="findProducts" resultMap="ProductResultMap">
+        SELECT
+            pt.product_id,
+            pt.user_id,
+            pt.product_name_kor,
+            pt.product_price,
+            pt.product_image_url,
+            pt.product_category_id,
+            pt.product_animal_category_id,
+            pt.product_board_content,
+            pt.create_date,
+            pt.update_date,
+            COUNT(pft.product_id) AS total_user_id_count
+        FROM
+            product_tb pt
+            LEFT OUTER JOIN product_favorite_tb pft ON (pft.product_id = pt.product_id)
+        WHERE
+        1 = 1
+        <if test="productAnimalCategoryId != 0">
+            AND pt.product_animal_category_id = #{productAnimalCategoryId}
+        </if>
+        <if test="productCategoryId != 0">
+            AND pt.product_category_id = #{productCategoryId}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            AND pt.product_name_kor LIKE CONCAT('%', #{searchText}, '%')
+        </if>
+        GROUP BY
+            pt.product_id,
+            pt.user_id,
+            pt.product_name_kor,
+            pt.product_price,
+            pt.product_image_url,
+            pt.product_category_id,
+            pt.product_animal_category_id,
+            pt.product_board_content,
+            pt.create_date,
+            pt.update_date
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'desc'">
+                total_user_id_count DESC
+            </when>
+            <when test="orderBy == 'asc'">
+                total_user_id_count ASC
+            </when>
+        </choose>
+        LIMIT
+        #{startIndex}, #{count}
+    </select>
+
+    <select id="getProductCount" resultType="integer">
+        select
+            count(*)
+        from
+            product_tb pt
+        where
+            1 = 1
+            <if test="productAnimalCategoryId != 0">
+                AND pt.product_animal_category_id = #{productAnimalCategoryId}
+            </if>
+            <if test="productCategoryId != 0">
+                and pt.product_category_id = #{productCategoryId}
+            </if>
+            <if test="searchText != null and searchText != ''">
+                AND pt.product_name_kor LIKE CONCAT('%', #{searchText}, '%')
+            </if>
+    </select>
+
+
+</mapper>

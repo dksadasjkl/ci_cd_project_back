@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.ProductCartMapper">
+
+    <resultMap id="ProductResultMap" type="com.project.pet.entity.product.Product">
+        <id property="productId" column="product_id" />
+        <result property="userId" column="user_id" />
+        <result property="productNameKor" column="product_name_kor" />
+        <result property="productPrice" column="product_price" />
+        <result property="productImageUrl" column="product_image_url" />
+        <result property="productCategoryId" column="product_category_id" />
+        <result property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productBoardContent" column="product_board_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductOrderResultMap" type="com.project.pet.entity.product.ProductOrder">
+        <id property="productOrderId" column="product_order_id" />
+        <result property="userId" column="user_id" />
+        <result property="productId" column="product_id" />
+        <result property="productOrderAddress" column="product_order_address" />
+        <result property="productOrderDetailAddress" column="product_order_detail_address" />
+        <result property="productSizeCategoryId" column="product_size_category_id" />
+        <result property="productOrderCount" column="product_order_count" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductCartResultMap" type="com.project.pet.entity.product.ProductCart">
+        <id property="productCartId" column="product_cart_id" />
+        <result property="userId" column="user_id" />
+        <result property="productId" column="product_id" />
+        <result property="productSizeCategoryId" column="product_size_category_id" />
+        <result property="productCartCount" column="product_cart_count" />
+        <association property="productOrder" resultMap="ProductOrderResultMap" />
+        <association property="product" resultMap="ProductResultMap" />
+    </resultMap>
+
+    <insert id="saveProductCart"
+            parameterType="com.project.pet.entity.product.ProductCart"
+    >
+        insert into
+            product_cart_tb
+        values
+            (0, #{userId}, #{productId}, #{productSizeCategoryId}, #{productCartCount})
+    </insert>
+
+    <select id="getProductsCart"
+            parameterType="integer"
+            resultMap="ProductCartResultMap"
+    >
+        select
+            pct.product_cart_id,
+            pct.user_id,
+            pct.product_id,
+            pct.product_size_category_id,
+            pct.product_cart_count,
+            pot.product_order_id,
+            pot.product_order_address,
+            pot.product_order_detail_address,
+            pot.product_order_count,
+            pt.product_name_kor,
+            pt.product_price,
+            pt.product_image_url
+        from
+            product_cart_tb pct
+            left outer join product_order_tb pot on(pot.user_id = pct.user_id)
+            left outer join product_tb pt on(pt.product_id = pct.product_id)
+        where
+            pct.user_id = #{userId}
+    </select>
+
+    <delete id="deleteProductCarts"
+            parameterType="list"
+    >
+        delete
+        from
+            product_cart_tb
+        where
+            product_cart_id in (
+        <foreach collection="productCartIds" item="productCartId" separator=",">
+            #{productCartId}
+        </foreach>
+        )
+    </delete>
+    
+    <update id="updateProductCart"
+            parameterType="com.project.pet.entity.product.ProductCart"
+    >
+        update
+            product_cart_tb
+        set
+            user_id = #{userId},
+            product_id = #{productId},
+            product_size_category_id = #{productSizeCategoryId},
+            product_cart_count = #{productCartCount}
+        where
+            product_cart_id = #{productCartId}
+
+    </update>
+</mapper>

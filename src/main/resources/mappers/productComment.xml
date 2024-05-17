@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.ProductCommentMapper">
+
+    <resultMap id="ProductCommentRatingResultMap" type="com.project.pet.entity.product.ProductCommentRating">
+        <id property="productCommentRatingId" column="product_comment_rating_id" />
+        <result property="productCommentId" column="product_comment_id" />
+        <result property="userId" column="user_id" />
+        <result property="productCommentRatingValue" column="product_comment_rating_value" />
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.project.pet.entity.product.Product">
+        <id property="productId" column="product_id" />
+        <result property="userId" column="user_id" />
+        <result property="productNameKor" column="product_name_kor" />
+        <result property="productPrice" column="product_price" />
+        <result property="productImageUrl" column="product_image_url" />
+        <result property="productCategoryId" column="product_category_id" />
+        <result property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productBoardContent" column="product_board_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductCommentResultMap" type="com.project.pet.entity.product.ProductComment">
+            <id property="productCommentId" column="product_comment_id" />
+            <result property="productId" column="product_id" />
+            <result property="userId" column="user_id" />
+            <result property="productCommentContent" column="product_comment_content" />
+            <result property="createDate" column="create_date" />
+            <result property="updateDate" column="update_date" />
+            <association property="productCommentRating" resultMap="ProductCommentRatingResultMap" />
+            <association property="product" resultMap="ProductResultMap" />
+    </resultMap>
+
+    <insert id="saveProductComment"
+            parameterType="com.project.pet.entity.product.ProductComment"
+            useGeneratedKeys="true"
+            keyProperty="productCommentId"
+    >
+        insert into
+            product_comment_tb
+        values
+            (0, #{productId}, #{userId}, #{productCommentContent}, now(), now())
+    </insert>
+
+    <select id="getProductCommentsByUserId"
+            parameterType="integer"
+            resultMap="ProductCommentResultMap"
+    >
+        select
+            pct.product_comment_id,
+            pct.product_id,
+            pct.user_id,
+            pct.product_comment_content,
+            pcr.product_comment_rating_id,
+            pcr.product_comment_rating_value,
+            pt.product_name_kor,
+            pt.product_image_url,
+            pct.create_date,
+            pct.update_date
+        from
+            product_comment_tb pct
+            left outer join product_comment_rating_tb pcr on pcr.product_comment_id = pct.product_comment_id
+            left outer join product_tb pt on pt.product_id = pct.product_id
+        where
+            pct.user_id = #{userId};
+    </select>
+
+    <select id="getAllProductCommentsByProductId"
+            parameterType="integer"
+            resultMap="ProductCommentResultMap"
+    >
+        select
+            pct.product_comment_id,
+            pct.product_id,
+            pct.user_id,
+            pct.product_comment_content,
+            pcr.product_comment_rating_id,
+            pcr.product_comment_rating_value,
+            pt.product_name_kor,
+            pt.product_image_url,
+            pct.create_date,
+            pct.update_date
+        from
+            product_comment_tb pct
+            left outer join product_comment_rating_tb pcr on pcr.product_comment_id = pct.product_comment_id
+            left outer join product_tb pt on pt.product_id = pct.product_id
+        where
+            pct.product_id = #{productId};
+    </select>
+
+    <select id="findProductComments"
+            resultMap="ProductCommentResultMap"
+    >
+        select
+            pct.product_comment_id,
+            pct.product_id,
+            pct.user_id,
+            pct.product_comment_content,
+            pcr.product_comment_rating_id,
+            pcr.product_comment_rating_value,
+            pt.product_name_kor,
+            pt.product_image_url,
+            pct.create_date,
+            pct.update_date
+        from
+            product_comment_tb pct
+            left outer join product_comment_rating_tb pcr on pcr.product_comment_id = pct.product_comment_id
+            left outer join product_tb pt on pt.product_id = pct.product_id
+        where
+            pct.product_id = #{productId}
+            limit #{startIndex}, #{count}
+    </select>
+
+    <select id="getAllProductCommentCount" resultType="integer">
+        select
+            count(*)
+        from
+            product_comment_tb pct
+        where
+            pct.product_id = #{productId}
+    </select>
+
+    <delete id="deleteProductComment"
+            parameterType="Integer">
+        delete
+        from
+            product_comment_tb
+        where
+            product_comment_id = #{productCommentId}
+    </delete>
+
+    <update
+            id="updateProductComment"
+            parameterType="com.project.pet.entity.product.ProductComment"
+    >
+        update
+            product_comment_tb
+        set
+            product_comment_content = #{productCommentContent},
+            update_date = now()
+        where
+            product_comment_id = #{productCommentId}
+    </update>
+
+</mapper>

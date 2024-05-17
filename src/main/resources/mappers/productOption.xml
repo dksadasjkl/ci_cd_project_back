@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.OptionsMapper">
+
+    <resultMap id="ProductTypeResultMap" type="com.project.pet.entity.product.ProductCategory">
+        <id property="productCategoryId" column="product_category_id"/>
+        <result property="productCategoryName" column="product_category_name"/>
+        <result property="productCategoryNameKor" column="product_category_name_kor"/>
+    </resultMap>
+    <resultMap id="CategoryResultMap" type="com.project.pet.entity.product.ProductAnimalCategory">
+        <id property="productAnimalCategoryId" column="product_animal_category_id"/>
+        <result property="productAnimalCategoryName" column="product_animal_category_name"/>
+        <result property="productAnimalCategoryNameKor" column="product_animal_category_name_kor"/>
+    </resultMap>
+    <resultMap id="ProductSizeResultMap" type="com.project.pet.entity.product.ProductSizeCategory">
+        <id property="productSizeCategoryId" column="product_size_category_id"/>
+        <result property="productSizeCategoryName" column="product_size_category_name"/>
+        <result property="productSizeCategoryNameKor" column="product_size_category_name_kor"/>
+    </resultMap>
+
+    <select id="getAllProductTypes" resultMap="ProductTypeResultMap">
+        select
+            product_category_id,
+            product_category_name,
+            product_category_name_kor
+        from
+            product_category_tb
+    </select>
+
+    <select id="getAllCategories" resultMap="CategoryResultMap">
+        select
+            product_animal_category_id,
+            product_animal_category_name,
+            product_animal_category_name_kor
+        from
+            product_animal_category_tb
+    </select>
+
+    <select id="getAllSize" resultMap="ProductSizeResultMap">
+        select
+            product_size_category_id,
+            product_size_category_name,
+            product_size_category_name_kor
+        from
+            product_size_category_tb
+    </select>
+</mapper>

@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.pet.repository.CommunityBoardMapper">
+
+    <resultMap id="CommunityBoardAnimalCategoryResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardAnimalCategory" >
+        <id property="communityBoardAnimalCategoryId" column="community_board_id" />
+        <result property="communityBoardAnimalCategoryName" column="community_board_animal_category_name"/>
+        <result property="communityBoardAnimalCategoryNameKor" column="community_board_animal_category_name_kor"/>
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="CommunityBoardViewResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardView">
+        <id property="communityViewId" column="community_board_view_id" />
+        <result property="communityBoardId" column="community_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="CommunityBoardFavoriteResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardFavorite">
+        <id property="communityBoardFavoriteId" column="community_board_favorite_id" />
+        <result property="communityBoardId" column="community_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="user_username" />
+        <result property="password" column="user_password" />
+        <result property="name" column="user_name" />
+        <result property="address" column="user_address" />
+        <result property="telNumber" column="user_tel_number" />
+        <result property="nickname" column="user_nickname" />
+        <result property="email" column="user_email" />
+        <result property="profileImageUrl" column="user_profile_image_url" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="CommunityBoardCommentResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardComment">
+        <id property="communityBoardCommentId" column="community_board_comment_id" />
+        <result property="communityBoardId" column="community_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="communityBoardCommentContent" column="community_board_comment_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="CommunityBoardResultMap" type="com.project.pet.entity.communityBoard.CommunityBoard" >
+        <id property="communityBoardId" column="community_board_id"/>
+        <result property="userId" column="user_id" />
+        <result property="communityBoardTitle" column="community_board_title" />
+        <result property="communityBoardContent" column="community_board_content" />
+        <result property="communityBoardAnimalCategoryId" column="community_board_animal_category_id" />
+        <result property="favoriteCount" column="favorite_count"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="totalSum" column="total_sum"/>
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="communityBoardAnimalCategory" resultMap="CommunityBoardAnimalCategoryResultMap" />
+        <association property="user" resultMap="UserResultMap" />
+        <association property="communityBoardComment" resultMap="CommunityBoardCommentResultMap" />
+        <association property="communityBoardFavorite" resultMap="CommunityBoardFavoriteResultMap" />
+        <association property="communityBoardView" resultMap="CommunityBoardViewResultMap" />
+    </resultMap>
+
+
+    <insert id="postCommunityBoard"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoard"
+    >
+        insert into
+            community_board_tb
+        values
+            (0, #{userId}, #{communityBoardTitle}, #{communityBoardContent}, #{communityBoardAnimalCategoryId}, #{viewCount}, now(), now())
+    </insert>
+
+    <select id="getTop3Boards" resultMap="CommunityBoardResultMap">
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbt.create_date,
+            cbt.update_date,
+            (select count(*) from community_board_favorite_tb where community_board_id = cbt.community_board_id group by community_board_id) as favorite_count,
+            cbt.view_count,
+            (select count(*) from community_board_comment_tb where community_board_id = cbt.community_board_id group by community_board_id) as comment_count,
+            (select count(*) from community_board_favorite_tb where community_board_id = cbt.community_board_id) + cbt.view_count + (select count(*) from community_board_comment_tb where community_board_id = cbt.community_board_id) as total_sum
+        from
+        community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+        group by
+            cbt.community_board_id
+        order by
+            total_sum desc limit 3
+    </select>
+
+    <select id="GetCommunityBoards"
+            resultMap="CommunityBoardResultMap">
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbact.community_board_animal_category_name,
+            cbact.community_board_animal_category_name_kor,
+            cbt.create_date,
+            cbt.update_date
+        from
+            community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+    </select>
+
+    <select id="getCommunityBoardBoardId"
+            parameterType="integer"
+            resultMap="CommunityBoardResultMap">
+            select
+                cbt.community_board_id,
+                cbt.user_id,
+                ut.user_username,
+                ut.user_nickname,
+                cbt.community_board_title,
+                cbt.community_board_content,
+                cbt.community_board_animal_category_id,
+                (select count(*) from community_board_favorite_tb where community_board_id = cbt.community_board_id group by community_board_id) as favorite_count,
+                cbt.view_count,
+                (select count(*) from community_board_comment_tb where community_board_id = cbt.community_board_id group by community_board_id) as comment_count,
+                cbt.create_date,
+                cbt.update_date
+            from
+                community_board_tb cbt
+                left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            where
+                cbt.community_board_id = #{communityBoardId}
+    </select>
+
+    <select id="getMyBoardByUserId"
+            parameterType="integer"
+            resultMap="CommunityBoardResultMap">
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbact.community_board_animal_category_name,
+            cbact.community_board_animal_category_name_kor,
+            cbt.create_date,
+            cbt.update_date
+        from
+            community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+        where
+            cbt.user_id = #{userId}
+    </select>
+
+    <select id="getBoardPageCount"
+            resultMap="CommunityBoardResultMap" >
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            ut.user_nickname,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            (select count(*) from community_board_favorite_tb where community_board_id = cbt.community_board_id group by community_board_id) as favorite_count,
+            cbt.view_count,
+            (select count(*) from community_board_comment_tb where community_board_id = cbt.community_board_id group by community_board_id) as comment_count,
+            cbt.create_date,
+            cbt.update_date
+        from
+            community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+        where
+        1 = 1
+        <if test="boardAnimalCategoryId != 0">
+            and cbt.community_board_animal_category_id = #{boardAnimalCategoryId}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            and (
+            cbt.community_board_content LIKE concat('%', #{searchText}, '%')
+            or cbt.community_board_title LIKE concat('%', #{searchText}, '%')
+            )
+        </if>
+        group by
+            cbt.community_board_id
+        LIMIT
+            #{startIndex}, #{count}
+    </select>
+
+
+    <select id="getBoardCount" resultType="integer">
+        select
+            count(*)
+        from
+            community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+        where
+        1 = 1
+        <if test="boardAnimalCategoryId != 0">
+            and cbt.community_board_animal_category_id = #{boardAnimalCategoryId}
+        </if>
+        <if test="searchText != null and searchText != ''">
+            and (
+            cbt.community_board_content LIKE concat('%', #{searchText}, '%')
+            or cbt.community_board_title LIKE concat('%', #{searchText}, '%')
+            )
+        </if>
+    </select>
+
+
+
+    <select id="getDogBoardPageCount"
+            resultType="integer" >
+
+        select
+            count(*)
+        from
+        community_board_tb cbt
+        left outer join user_tb ut on (ut.user_id = cbt.user_id)
+        left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+
+        where
+        cbt.community_board_animal_category_id = 1;
+    </select>
+
+    <select id="getCatBoardPageCount"
+            resultType="integer" >
+
+        select
+            count(*)
+        from
+        community_board_tb cbt
+        left outer join user_tb ut on (ut.user_id = cbt.user_id)
+        left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+
+        where
+        cbt.community_board_animal_category_id = 2;
+
+    </select>
+
+    <select id="getMyBoardPageCount"
+            resultType="integer" >
+
+        select
+            count(*)
+        from
+        community_board_tb cbt
+        left outer join user_tb ut on (ut.user_id = cbt.user_id)
+        left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+
+        where
+        cbt.user_id = #{userId}
+
+    </select>
+
+
+
+    <select id="getFavoriteCommunityBoardsByUserId"
+            parameterType="integer"
+            resultMap="CommunityBoardResultMap">
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbact.community_board_animal_category_name,
+            cbact.community_board_animal_category_name_kor,
+            cbt.create_date,
+            cbt.update_date
+        from
+            community_board_tb cbt
+            inner join community_board_favorite_tb cbft on (cbft.community_board_id =  cbt.community_board_id)
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+        where
+            cbft.user_id = #{userId};
+
+    </select>
+
+
+
+    <select id="getCommunityBoardsDog"
+            resultMap="CommunityBoardResultMap">
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbact.community_board_animal_category_name,
+            cbact.community_board_animal_category_name_kor,
+            cbt.create_date,
+            cbt.update_date
+        from
+            community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+
+        where
+            cbt.community_board_animal_category_id = 1;
+    </select>
+
+    <select id="getCommunityBoardCat"
+            resultMap="CommunityBoardResultMap">
+
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            ut.user_username,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbact.community_board_animal_category_name,
+            cbact.community_board_animal_category_name_kor,
+            cbt.create_date,
+            cbt.update_date
+
+        from
+            community_board_tb cbt
+            left outer join user_tb ut on (ut.user_id = cbt.user_id)
+            left outer join community_board_animal_category_tb cbact on (cbact.community_board_animal_category_id = cbt.community_board_animal_category_id)
+
+        where
+            cbt.community_board_animal_category_id = 2;
+    </select>
+
+
+    <delete id="deleteCommunityBoardByBoardId"
+                parameterType="integer">
+            delete
+            from
+                community_board_tb
+            where
+                community_board_id = #{communityBoardId}
+    </delete>
+
+    <delete id="deleteCommunityBoards"
+           parameterType="list">
+        delete
+        from
+            community_board_tb
+
+        where
+            community_board_id in (
+                <foreach collection="boardIds" item="boardId" separator=",">
+                    #{boardId}
+                </foreach>
+            )
+    </delete>
+
+    <update id="updateCommunityBoard"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoard">
+        update
+            community_board_tb
+        set
+            community_board_title = #{communityBoardTitle},
+            community_board_content = #{communityBoardContent},
+            community_board_animal_category_id = #{communityBoardAnimalCategoryId},
+            update_date = now()
+        where
+            community_board_id = #{communityBoardId}
+    </update>
+
+    <update id="setBoardViewCountUp" parameterType="integer">
+        update community_board_tb
+        set
+        view_count = view_count + 1
+        where
+        community_board_id = #{communityBoardId}
+    </update>
+
+</mapper>
+
+

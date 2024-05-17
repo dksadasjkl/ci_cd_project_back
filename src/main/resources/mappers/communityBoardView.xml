@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.pet.repository.CommunityBoardViewMapper">
+
+    <resultMap id="CommunityBoardViewResultMap" type="com.project.pet.entity.communityBoard.CommunityBoardView">
+        <id property="communityViewId" column="community_board_view_id" />
+        <result property="communityBoardId" column="community_board_id" />
+        <result property="userId" column="user_id" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+
+    <resultMap id="CommunityBoardResultMap" type="com.project.pet.entity.communityBoard.CommunityBoard" >
+        <id property="communityBoardId" column="community_board_id"/>
+        <result property="userId" column="user_id" />
+        <result property="communityBoardTitle" column="community_board_title" />
+        <result property="communityBoardContent" column="community_board_content" />
+        <result property="communityBoardAnimalCategoryId" column="community_board_animal_category_id" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <result property="totalCount" column="total_user_id_count"/>
+        <association property="communityBoardView" resultMap="CommunityBoardViewResultMap" />
+    </resultMap>
+    <insert id="postCommunityBoardView"
+            parameterType="com.project.pet.entity.communityBoard.CommunityBoardView">
+        insert into
+            community_board_view_tb
+        values
+        (0,#{communityBoardId},#{userId}, now(), now());
+    </insert>
+
+    <select id="getCommunityBoardViewCount"
+            resultType="integer"
+            resultMap="CommunityBoardResultMap">
+        select
+            cbt.community_board_id,
+            cbt.user_id,
+            cbt.community_board_title,
+            cbt.community_board_content,
+            cbt.community_board_animal_category_id,
+            cbt.create_date,
+            cbt.update_date,
+            COUNT(cbvt.user_id) AS total_user_id_count
+        from
+            community_board_tb cbt
+
+        left outer join
+            community_board_view_tb cbvt on (cbvt.community_board_id = cbt.community_board_id)
+        where
+            cbt.community_board_id = #{communityBoardId};
+
+    </select>
+</mapper>

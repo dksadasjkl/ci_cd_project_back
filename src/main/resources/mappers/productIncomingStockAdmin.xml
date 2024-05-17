@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.project.pet.repository.admin.ProductIncomingStockAdminMapper">
+
+    <resultMap id="ProductStockResultMap" type="com.project.pet.entity.product.ProductStock">
+            <id property="productStockId" column="product_stock_id" />
+            <result property="productId" column="product_id"/>
+            <result property="productSizeCategoryId" column="product_size_category_id"/>
+            <result property="productStockCount" column="product_stock_count"/>
+            <result property="createDate" column="create_date"/>
+            <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <resultMap id="ProductResultMap" type="com.project.pet.entity.product.Product">
+        <id property="productId" column="product_id" />
+        <result property="userId" column="user_id" />
+        <result property="productNameKor" column="product_name_kor" />
+        <result property="productPrice" column="product_price" />
+        <result property="productImageUrl" column="product_image_url" />
+        <result property="productCategoryId" column="product_category_id" />
+        <result property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productBoardContent" column="product_board_content" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="productCategory" resultMap="ProductCategoryResultMap"/>
+        <association property="productAnimalCategory" resultMap="ProductAnimalCategoryResultMap"/>
+        <association property="user" resultMap="UserResultMap"/>
+    </resultMap>
+
+    <resultMap id="ProductCategoryResultMap" type="com.project.pet.entity.product.ProductCategory">
+        <id property="productCategoryId" column="product_category_id" />
+        <result property="productCategoryName" column="product_category_name" />
+        <result property="productCategoryNameKor" column="product_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductAnimalCategoryResultMap" type="com.project.pet.entity.product.ProductAnimalCategory">
+        <id property="productAnimalCategoryId" column="product_animal_category_id" />
+        <result property="productAnimalCategoryName" column="product_animal_category_name" />
+        <result property="productAnimalCategoryNameKor" column="product_animal_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="UserResultMap" type="com.project.pet.entity.user.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="user_username" />
+        <result property="password" column="user_password" />
+        <result property="name" column="user_name" />
+        <result property="address" column="user_address" />
+        <result property="telNumber" column="user_tel_number" />
+        <result property="nickname" column="user_nickname" />
+        <result property="email" column="user_email" />
+        <result property="profileImageUrl" column="user_profile_image_url" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+    </resultMap>
+
+    <resultMap id="ProductSizeCategoryResultMap" type="com.project.pet.entity.product.ProductSizeCategory">
+        <id property="productSizeCategoryId" column="product_size_category_tb" />
+        <result property="productSizeCategoryName" column="product_size_category_name" />
+        <result property="productSizeCategoryNameKor" column="product_size_category_name_kor" />
+    </resultMap>
+
+    <resultMap id="ProductIncomingStockResultMap" type="com.project.pet.entity.product.ProductIncomingStock">
+        <id property="productIncomingStockId" column="product_incoming_stock_id" />
+        <result property="productId" column="product_id" />
+        <result property="productSizeCategoryId" column="product_size_category_id" />
+        <result property="productIncomingStockCount" column="product_incoming_stock_count" />
+        <result property="createDate" column="create_date" />
+        <result property="updateDate" column="update_date" />
+        <association property="product" resultMap="ProductResultMap" />
+        <association property="productSizeCategory" resultMap="ProductSizeCategoryResultMap" />
+    </resultMap>
+
+    <select id="getProductStock" parameterType="com.project.pet.entity.product.ProductStock" resultMap="ProductStockResultMap">
+        select
+            product_stock_id,
+            product_id,
+            product_stock_count,
+            product_size_category_id,
+            product_stock_count,
+            create_date,
+            update_date
+        from
+            product_stock_tb
+        where
+            product_id = #{productId}
+            and
+            product_size_category_id = #{productSizeCategoryId}
+    </select>
+
+    <update id="putProductIncomingCheckAdmin" parameterType="com.project.pet.entity.product.ProductStock">
+        update
+            product_stock_tb
+        set
+            product_stock_count = #{productStockCount}
+        where
+            product_id = #{productId}
+            and
+            product_size_category_id = #{productSizeCategoryId}
+    </update>
+
+    <insert id="postProductIncomingStock"
+            parameterType="com.project.pet.entity.product.ProductIncomingStock"
+            keyProperty="productIncomingStockId"
+            useGeneratedKeys="true"
+    >
+        insert into
+            product_incoming_stock_tb
+        values
+            (0, #{productId}, #{productSizeCategoryId}, #{productIncomingStockCount}, now(), now())
+    </insert>
+
+    <update id="putProductIncomingStockAdmin" parameterType="com.project.pet.entity.product.ProductIncomingStock">
+        update
+            product_incoming_stock_tb
+        set
+            product_id = #{productId},
+            product_size_category_id = #{productSizeCategoryId},
+            product_incoming_stock_count = #{productIncomingStockCount},
+            update_date = now()
+        where
+            product_incoming_stock_id = #{productIncomingStockId}
+    </update>
+
+    <delete id="deleteProductIncomingStocksAdmin" parameterType="List">
+        delete
+        from
+            product_incoming_stock_tb
+        where
+            product_incoming_stock_id in (
+            <foreach collection="productIncomingStockIds" item="productIncomingStockId" separator=",">
+                #{productIncomingStockId}
+            </foreach>
+            )
+    </delete>
+
+    <select id="getProductIncomingStocks" resultMap="ProductIncomingStockResultMap">
+        select
+            pist.product_incoming_stock_id,
+            pist.product_id,
+            pt.product_name_kor,
+            pist.product_size_category_id,
+            psct.product_size_category_name,
+            pist.product_incoming_stock_count
+        from
+            product_incoming_stock_tb pist
+            left outer join product_tb pt on(pt.product_id = pist.product_id)
+            left outer join product_size_category_tb psct on(psct.product_size_category_id = pist.product_size_category_id)
+        where
+            1 = 1
+            <if test="productSizeCategoryId != 0">
+                and pist.product_size_category_Id = #{productSizeCategoryId}
+            </if>
+            <if test="productNameKor != '' and productNameKor != null">
+                and pt.product_name_kor like concat('%', #{productNameKor}, '%')
+            </if>
+        limit #{startIndex}, #{count}
+    </select>
+
+    <select id="getProductIncomingCount" resultType="Integer">
+        select
+            count(*)
+        from
+            product_incoming_stock_tb pist
+            left outer join product_tb pt on(pt.product_id = pist.product_id)
+            left outer join product_size_category_tb psct on(psct.product_size_category_id = pist.product_size_category_id)
+        where
+            1 = 1
+            <if test="productSizeCategoryId != 0">
+                and pist.product_size_category_id = #{productSizeCategoryId}
+            </if>
+            <if test="productNameKor != '' and productNameKor != null">
+                and pt.product_name_kor like concat('%', #{productNameKor}, '%')
+            </if>
+    </select>
+
+</mapper>
